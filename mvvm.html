@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+  <div id="app">
+      <p>vx:{{msg.vx}}</p>
+      <P>公众号:{{gongzhonghao}}</P>
+  </div>
+</body>
+</html>
+<script src="./observe.js"></script>
+<script src="./proxyData.js"></script>
+<script src="./compile.js"></script>
+<script src="./mvvm.js"></script>
+<script>
+    let mvvm = new Mvvm({
+        el: '#app',
+        data:{ gongzhonghao:'前端架构之路', msg:{vx:214464812,creator: 'zhangzhen' }}
+    })
+
+</script>
