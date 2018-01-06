@@ -8,9 +8,14 @@
   <div id="app">
       <p>vx:{{msg.vx}}</p>
       <P>公众号:{{gongzhonghao}}</P>
+      <input type="text" v-model='gongzhonghao'>
+      {{say}}
   </div>
 </body>
 </html>
+
+<script src="./dep-subs.js"></script>
+<script src="./computed.js"></script>
 <script src="./observe.js"></script>
 <script src="./proxyData.js"></script>
 <script src="./compile.js"></script>
@@ -18,7 +23,13 @@
 <script>
     let mvvm = new Mvvm({
         el: '#app',
-        data:{ gongzhonghao:'前端架构之路', msg:{vx:214464812,creator: 'zhangzhen' }}
+        data:{ gongzhonghao:'前端架构之路', msg:{vx:214464812,creator: 'zhangzhen' }},
+        //computed 可以缓存 只是把数据挂在mvvm上
+        computed:{
+          say(){
+            return this.gongzhonghao  + '--------' + this.msg.creator
+          }
+        }
     })
 
 </script>

@@ -1,7 +1,8 @@
+//数据代理
 function proxyData(data,vm){
     for(let key in data ) {
         Object.defineProperty(vm, key ,{
-            enumerable:true, 
+            enumerable:true,
             get() {
                 return this._data[key];
             },
@@ -9,5 +10,5 @@ function proxyData(data,vm){
                 this._data[key] = newValue
             }
         })
-    } 
+    }
 }
