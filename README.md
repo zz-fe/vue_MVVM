@@ -1,6 +1,10 @@
 # MVVM  
 
-双向数据绑定  model view viewModel  
+## 更多精彩文章 请关注作者的公众号：'前端架构之路'，听大咖们聊聊前端 
+
+#### 本文github地址 https://github.com/zz-fe/vue_MVVM
+
+### 双向数据绑定  model view viewModel  
 
 1.angular 脏值检查 $watch()  $apply()/ $digest(),
 
@@ -17,6 +21,7 @@ vue 不兼容低版本的原因是因为 低版本浏览器不兼容Object.defin
    //console.log(obj) {}
 ```
 然后如果我们用到了Object.defineProperty 这个属性你就会发现不同了,需要配置一下参数才能达成以上的需求
+
 ```
   var  obj  = {};
     Object.defineProperty(obj, '公众号',{
@@ -27,6 +32,7 @@ vue 不兼容低版本的原因是因为 低版本浏览器不兼容Object.defin
     })
 
 ```
+
 首先我们要了解这些属性 然后我们在进行值修改,但有的时候我们会用到 get set方法 跟vue当的一样
 
 ```
@@ -71,7 +77,7 @@ console.log(obj.公众号)  //前端架构之路
 
 ```
 
-//数据劫持 观察对象给递归给每一个对象增加Object.definePropery 通过set方法触发 就能监听到了数据的变化
+数据劫持 观察对象给递归给每一个对象增加Object.definePropery 通过set方法触发 就能监听到了数据的变化,如果数据类型是{a:{b:1}} 多层的 那么就要用到递归去实现。
 
 
 function observe (data) {
@@ -102,8 +108,6 @@ function Observe (data) {
 }
 
 
-
-
 ```
 
 
@@ -111,7 +115,7 @@ function Observe (data) {
 ### vue中的数据代理   
 
 在项目中 我们会遇到一些比较复杂的数据结构 例如 data:{ gongzhonghao:'前端架构之路', msg:{vx:214464812,creator: 'zhangzhen' }}  如果你用的我上面写的observe 方法的话 就会发现 我要获取creator 字段的话 需要通过mvvm._data.msg.creator   ..... 如果复杂的数据结构很多的话 就会很乱 需要通过mvvm.msg方式来获取数据(去掉_data)
-那么就要用到数据代理的方式来处理以上问题 。
+那么就要用到数据代理的方式来处理以上问题 。其中this代表的是整个数据
 
 
 ```
@@ -182,6 +186,7 @@ function replace (Fragment,vm){
 当一个值发生变化的时候 视图也发生变化 这就需要我们去订阅一些事件
 ep.addSub(Dep.target) 是增加订阅 , dep.notify函数 是发布事件
 当值发生改变的时候我们去发布这个事件(调用dep.notify()）
+
 ```
 observe(value)
 Object.defineProperty(data, key, {
@@ -257,14 +262,119 @@ Watcher.prototype.update = function() {
   })
   this.fn(val);
 }
+
 ```
+
 #### (4) 发布之后 修改模板
 当我们调用dep.notify()的时候 其实就是调用update方法 在compile.js中模板重新赋值
 
+
 ```
-  //发布订阅模式开启
+  发布订阅模式开启
   new Watcher(vm, RegExp.$1, function(newValue){
     node.textContent = text.replace(reg,newValue)
   })
 
 ```
+
+以上4步完事之后，就可以实现了vue当中的发布订阅模式
+
+### 如何实现input 标签当中的v-model 
+
+```
+   <input type="text" v-model='gongzhonghao'>
+
+```
+
+  在编译的时候我要要判断节点 当nodeType == 1 的时候 我们获取DOM的属性来判断type类型 如果是我们想要的v-model 的话我们去就监听当前元素 并开启发布订阅模式去监听变化
+
+```
+  //当前为标签的时候
+    if(node.nodeType == '1'){
+      var nodeAttrs = node.attributes //获取当前节点DOM属性
+      //console.log(nodeAttrs)  //NamedNodeMap {0: type, 1: v-model, type: type, v-model: v-model, length: 2}
+      Array.from(nodeAttrs).forEach((attr) => {
+         var name = attr.name
+         var key = attr.value  //v-model = 'value'
+         if (name.indexOf('v-') == 0) {
+           node.value = vm[key]
+         }
+         //发布订阅模式开启
+         new Watcher(vm, key, function(newValue){
+           node.value = newValue
+         })
+
+         node.addEventListener('input',function(e){
+            var newValue = e.target.value
+            vm[key] = newValue
+         })
+      })
+
+```
+### 如何使用computed计算时进行缓存处理
+
+在工作当中很多面试的人都会去问computed计算与methods的计算 有什么区别 ?
+
+methods是一种交互方法，通常是把用户的交互动作写在methods中；而computed是一种数据变化时mvc中的module 到 view 的数据转化映射。
+简单点讲就是methods是需要去人为触发的，而computed是在检测到data数据变化时自动触发的，还有一点就是，性能消耗的区别，这个好解释。
+首先，methods是方式，方法计算后垃圾回收机制就把变量回收，所以下次在要求解筛选偶数时它会再次的去求值。而computed会是依赖数据的，就像闭包一样，数据占用内存是不会被垃圾回收掉的，所以再次访问筛选偶数集，不会去再次计算而是返回上次计算的值，当data中的数据改变时才会重新计算。简而言之，methods是一次性计算没有缓存，computed是有缓存的计算。其实代码实现起来很是简单 
+
+首先要是去获取当前computed值。
+
+```
+
+function computed() { //具有缓存功能
+    let computed = this.$options.computed;  // {key:value}
+    let self = this
+    Object.keys(computed).forEach(function(key){   //拿到key 值
+      Object.defineProperty(self, key,{
+        get: typeof computed[key] === 'function' ?  computed[key] : computed[key].get,
+        set(){},
+      })
+    })
+}
+
+```
+### 实现一个MVVM 
+
+MVVM作为数据绑定的入口，整合Observer、Compile和Watcher三者，通过Observer来监听自己的model数据变化，通过Compile来解析编译模板指令，最终利用Watcher搭起Observer和Compile之间的通信桥梁，达到数据变化 -> 视图更新；视图交互变化(input) -> 数据model变更的双向绑定效果。 
+
+```
+    let mvvm = new Mvvm({
+        el: '#app',
+        data:{ gongzhonghao:'前端架构之路', msg:{vx:214464812,creator: 'zhangzhen' }},
+        //computed 可以缓存 只是把数据挂在mvvm上
+        computed:{
+          say(){
+            return this.gongzhonghao  + '--------' + this.msg.creator
+          }
+        }
+    })
+
+```
+
+```
+function Mvvm(options = {}) {
+    //将所有的数据绑定在$options
+   this.$options = options
+
+   var data = this._data = this.$options.data;
+   //增加发布订阅
+   observe(data)
+
+   //数据代理方式
+   proxyData(data,this)
+   //计算
+   computed.call(this)
+   //模板编译
+   compile(options.el,this)
+}
+
+``` 
+vue中的MVVM 这里主要还是利用了Object.defineProperty()这个方法来劫持了vm实例对象的属性的读写权，使读写vm实例的属性转成读写了this._data的属性值，
+
+### 总结 
+
+本文主要围绕着 实现Observer , Compile , computed ,proxyData 几个方式 并且根据自己的思路来实现的,有问题可以联系我 VX:<span style='color:red'>zz214464812</span> 或在公总号：<span style='color:red'>"前端架构之路上"</span> 联系我  
+
+
