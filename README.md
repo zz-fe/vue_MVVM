@@ -15,8 +15,8 @@ vue 不兼容低版本的原因是因为 低版本浏览器不兼容Object.defin
 
 ```
    var obj = {}
-   obj.公众号 =  '前端架构之路',
-   //console.log(obj) {"公众号","前端架构之路"}
+   obj.公众号 =  '内推猿',
+   //console.log(obj) {"公众号","内推猿"}
    delect obj.公众号
    //console.log(obj) {}
 ```
@@ -28,7 +28,7 @@ vue 不兼容低版本的原因是因为 低版本浏览器不兼容Object.defin
       configurable:true,  //属性值可以被删除
       writable:true,  //对属性可进行编写
       enumerable: true, //可枚举
-      value:'前端架构之路'
+      value:'内推猿'
     })
 
 ```
@@ -42,13 +42,13 @@ vue 不兼容低版本的原因是因为 低版本浏览器不兼容Object.defin
       enumerable: true, //可枚举
       get() {
         //获取obj.公众号值得时候 会调用get方法
-        return '前端架构之路'
+        return '内推猿'
       }
       set() {
         //给obj 属性赋值
       }
     })
-console.log(obj.公众号)  //前端架构之路
+console.log(obj.公众号)  //内推猿
 
 ```
 
@@ -114,7 +114,7 @@ function Observe (data) {
 
 ### vue中的数据代理   
 
-在项目中 我们会遇到一些比较复杂的数据结构 例如 data:{ gongzhonghao:'前端架构之路', msg:{vx:214464812,creator: 'zhangzhen' }}  如果你用的我上面写的observe 方法的话 就会发现 我要获取creator 字段的话 需要通过mvvm._data.msg.creator   ..... 如果复杂的数据结构很多的话 就会很乱 需要通过mvvm.msg方式来获取数据(去掉_data)
+在项目中 我们会遇到一些比较复杂的数据结构 例如 data:{ gongzhonghao:'内推猿', msg:{vx:214464812,creator: 'zhangzhen' }}  如果你用的我上面写的observe 方法的话 就会发现 我要获取creator 字段的话 需要通过mvvm._data.msg.creator   ..... 如果复杂的数据结构很多的话 就会很乱 需要通过mvvm.msg方式来获取数据(去掉_data)
 那么就要用到数据代理的方式来处理以上问题 。其中this代表的是整个数据
 
 
@@ -375,6 +375,6 @@ vue中的MVVM 这里主要还是利用了Object.defineProperty()这个方法来�
 
 ### 总结 
 
-本文主要围绕着 实现Observer , Compile , computed ,proxyData 几个方式 并且根据自己的思路来实现的,有问题可以联系我 VX:<span style='color:red'>zz214464812</span> 或在公总号：<span style='color:red'>"前端架构之路上"</span> 联系我  
+本文主要围绕着 实现Observer , Compile , computed ,proxyData 几个方式 并且根据自己的思路来实现的,有问题可以联系我 VX:<span style='color:red'>zz214464812</span> 或在公总号：<span style='color:red'>"内推猿"</span> 联系我们团队
 
 
