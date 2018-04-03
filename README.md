@@ -4,23 +4,34 @@
 
 #### 本文github地址 https://github.com/zz-fe/vue_MVVM
 
-### 双向数据绑定  model view viewModel  
 
-1.angular 脏值检查 $watch()  $apply()/ $digest(),
+### 前言
 
-2.vue 数据劫持 + 发布订阅模式 (不兼容低版本)
+随着 Vue2.0 的发布，前端入门的要求也越来越低，已至于 Vue 已经成为一个前端的标配，最近也面了很多前端开发工程师，发现大部分都停留在用的阶段上，建议大家看看源码，学学 Vue 的思想。
 
+本文中，读者配合作者的 GitHub 去实践，相信会有很大的提升。
 
-vue 不兼容低版本的原因是因为 低版本浏览器不兼容Object.defineProperty这个属性 我们首先了解一下这个属性  正常中我们定义一个对象
+<font color=red>
+### 双向数据绑定 Model View ViewModel  
+
+1. Angular1.x当中的双向数据绑定是通过 监听的方式来出来的，核心思想为脏值检查,angular 通过$watch()去监听值然后调用  $apply()/ $digest()方法来实现的。
+
+2. Vue 数据劫持 + 发布订阅模式（不兼容低版本）+ 数据代理；
+</font> 
+
+#### 今天主要讲 Vue
+
+Vue 不兼容低版本，是因为低版本浏览器不兼容 Object.defineProperty 这个属性，我们首先了解一下正常情况下定义的对象。
 
 ```
    var obj = {}
-   obj.公众号 =  '内推猿',
+   obj.公众号 =  '内推猿',
    //console.log(obj) {"公众号","内推猿"}
    delect obj.公众号
    //console.log(obj) {}
 ```
-然后如果我们用到了Object.defineProperty 这个属性你就会发现不同了,需要配置一下参数才能达成以上的需求
+
+如果我们用到了 Object.defineProperty 这个属性再去定义一个对象，在控制台中你就会发现不同了， 在原型链上多了一些方法。
 
 ```
   var  obj  = {};
@@ -33,7 +44,7 @@ vue 不兼容低版本的原因是因为 低版本浏览器不兼容Object.defin
 
 ```
 
-首先我们要了解这些属性 然后我们在进行值修改,但有的时候我们会用到 get set方法 跟vue当的一样
+想要了解这些属性的全部参数的话，可以去 MDN 上查看一下。我们在进行值修改的时候，就会用到 get、set方法。
 
 ```
  var  obj  = {};
@@ -52,7 +63,7 @@ console.log(obj.公众号)  //内推猿
 
 ```
 
-我们通常写vue的时候 都会这样
+我们通常写 Vue 的时候，都会这样写：
 
 ```
 <body>
@@ -64,7 +75,7 @@ console.log(obj.公众号)  //内推猿
 <script>
     let mvvm = new Mvvm({
         el: '#app',
-        data:{ gongzhonghao:'前端架构之路'}
+        data:{ gongzhonghao:'内推猿'}
     })
 
 </script>
@@ -72,14 +83,11 @@ console.log(obj.公众号)  //内推猿
 ```
 
 
-那么如何去实现呢？ 我们用这个Object.defineProperty 这个属性来实现数据劫持(observer)
+那么如何去实现呢？我们用这个 Object.defineProperty 这个属性来实现数据劫持（Observer）。
 
+数据劫持：观察对象，通过递归给每一个对象增加 Object.definePropery，在 set 方法中触发 observe 方法，就能监听到数据的变化，如果数据类型是 `{a:{b:1}}`多层的，那么就要用到递归去实现。
 
 ```
-
-数据劫持 观察对象给递归给每一个对象增加Object.definePropery 通过set方法触发 就能监听到了数据的变化,如果数据类型是{a:{b:1}} 多层的 那么就要用到递归去实现。
-
-
 function observe (data) {
     return new Observe(data)
 }
@@ -110,12 +118,12 @@ function Observe (data) {
 
 ```
 
+### Vue 中的数据代理   
 
 
-### vue中的数据代理   
+我们会遇到一些比较复杂的数据结构，例如 `data:{ gongzhonghao:'内推猿', msg:{vx:214464812,creator: 'zhangzhen' }}`。
 
-在项目中 我们会遇到一些比较复杂的数据结构 例如 data:{ gongzhonghao:'内推猿', msg:{vx:214464812,creator: 'zhangzhen' }}  如果你用的我上面写的observe 方法的话 就会发现 我要获取creator 字段的话 需要通过mvvm._data.msg.creator   ..... 如果复杂的数据结构很多的话 就会很乱 需要通过mvvm.msg方式来获取数据(去掉_data)
-那么就要用到数据代理的方式来处理以上问题 。其中this代表的是整个数据
+如果你用的是我上面写的 observe 方法就会发现，我要获取 creator 字段的话，需要通过 `mvvm._data.msg.creator ..... ` 的形式来获取值。遇到再复杂的数据结构就会更乱。然而我们想要通过 `mvvm.msg` 方式来获取数据（去掉_data）。去掉复杂的查询方式，所以用到了数据代理的方式来处理以上问题，其中 this 代表的是整个数据。
 
 
 ```
@@ -133,18 +141,14 @@ function Observe (data) {
    }
 
 ```
-vue特点 不能新增不存在的属性   不存在的属性没有get set 。
-深度响应 因为每次赋予一个新对象 会增加数据截止
+Vue特点，不能新增不存在的属性 ，因为不存在的属性没有 get、set 方法。而vue当中的深度响应，会给每一个新对象增加数据劫持，从而去监控新对象的变化。
 
 
-### 模板编译Compile
+### 模板编译 Compile
 
-模板编译是把我们通过{{}}中的属性值 用我们的data去替换  首先我们通过#el 来确定编译的范围，创建createDocumentFragment 在内存中去更换我们的模板 减少DOM操作，通过nodeType 来判断当前的节点，利用
-正则来匹配{{}} 通过递归的方式来更换每一个数据
-
+Vue 项目中我们通过 `{{}}` 的方式来替换 data 值，首先我们通过 `#el` 来确定编译的范围，创建 `createDocumentFragment` 标签，在内存中去更换我们的模板减少 DOM 操作，通过 nodeType 来判断当前的节点，利用正则来匹配 `{{}}` 通过递归的方式来更换每一个数据。
 
 ```
-
 function Compile(el,vm) {
   vm.$el = document.querySelector(el);
   var Fragment = document.createDocumentFragment();
@@ -179,13 +183,11 @@ function replace (Fragment,vm){
 
 ```
 
+### 发布订阅模式（重点）
 
-### 发布订阅模式(重点)
+以上的操作已经完成了一个简单的数据与模板的绑定，那么大家关心的数据驱动该如何实现？当一个值发生变化的时候视图也发生变化，这就需要我们去订阅一些事件。
 
-以上的操作已经完成了一个简单的数据与模板的绑定,那么大家关心的数据驱动该如何实现？
-当一个值发生变化的时候 视图也发生变化 这就需要我们去订阅一些事件
-ep.addSub(Dep.target) 是增加订阅 , dep.notify函数 是发布事件
-当值发生改变的时候我们去发布这个事件(调用dep.notify()）
+ep.addSub(Dep.target) 是增加订阅，dep.notify 函数是发布事件。当值发生改变的时候我们去发布这个事件（调用dep.notify()）。
 
 ```
 observe(value)
@@ -208,13 +210,12 @@ Object.defineProperty(data, key, {
 
 ```
 
-#### 1.如何去订阅一些事件  
+#### 如何去订阅一些事件  
 
-说到订阅 那么问题来了，谁是订阅者？怎么往订阅器添加订阅者？ 在dep-subs.js中我指定了 Wathcher是订阅者
-首先要增加Wathcher是订阅者 把订阅者放到订阅器(subs)中  当值发生变化的时候 订阅器就会调用update 方法去发布一些事件。
+说到订阅，那么问题来了，谁是订阅者？怎么往订阅器添加订阅者？在 dep-subs.js 中我指定了  Wathcher 是订阅者。首先要增加 Wathcher 是订阅者，把订阅者放到订阅器（subs）中当值发生变化的时候，订阅器就会调用 update 方法去发布一些事件。
 
 
-##### (1)增加订阅  
+##### **增加订阅**  
 
 
 ```
@@ -228,7 +229,7 @@ Object.defineProperty(data, key, {
   }
 
 ```
-##### (2)发布订阅
+##### **发布订阅**
 
 ```
 //通知
@@ -238,7 +239,7 @@ Dep.prototype.notify = function() {
 
 
 ```
-##### (3) 观察者
+##### **观察者**
 
 ```
 function Watcher(vm,exp,fn){
@@ -265,8 +266,9 @@ Watcher.prototype.update = function() {
 
 ```
 
-#### (4) 发布之后 修改模板
-当我们调用dep.notify()的时候 其实就是调用update方法 在compile.js中模板重新赋值
+#### 发布之后，修改模板
+
+当我们调用 dep.notify() 的时候，其实就是调用 update 方法，在 compile.js 中模板重新赋值。
 
 
 ```
@@ -277,16 +279,18 @@ Watcher.prototype.update = function() {
 
 ```
 
-以上4步完事之后，就可以实现了vue当中的发布订阅模式
+以上4步完事之后，就可以实现了 Vue 当中的发布订阅模式。
 
-### 如何实现input 标签当中的v-model 
+### 如何实现 input 标签当中的v-model 
 
-```
-   <input type="text" v-model='gongzhonghao'>
 
 ```
 
-  在编译的时候我要要判断节点 当nodeType == 1 的时候 我们获取DOM的属性来判断type类型 如果是我们想要的v-model 的话我们去就监听当前元素 并开启发布订阅模式去监听变化
+ <input type="text" v-model='gongzhonghao'>
+
+```
+
+在编译的时候我们要判断节点，当 nodeType == 1 的时候，我们获取 DOM 的属性来判断 type 类型，如果是我们想要的 v-model 的话我们就去监听当前元素，并开启发布订阅模式去监听变化。
 
 ```
   //当前为标签的时候
@@ -311,15 +315,18 @@ Watcher.prototype.update = function() {
       })
 
 ```
-### 如何使用computed计算时进行缓存处理
 
-在工作当中很多面试的人都会去问computed计算与methods的计算 有什么区别 ?
+### 如何使用 computed 计算时进行缓存处理
 
-methods是一种交互方法，通常是把用户的交互动作写在methods中；而computed是一种数据变化时mvc中的module 到 view 的数据转化映射。
-简单点讲就是methods是需要去人为触发的，而computed是在检测到data数据变化时自动触发的，还有一点就是，性能消耗的区别，这个好解释。
-首先，methods是方式，方法计算后垃圾回收机制就把变量回收，所以下次在要求解筛选偶数时它会再次的去求值。而computed会是依赖数据的，就像闭包一样，数据占用内存是不会被垃圾回收掉的，所以再次访问筛选偶数集，不会去再次计算而是返回上次计算的值，当data中的数据改变时才会重新计算。简而言之，methods是一次性计算没有缓存，computed是有缓存的计算。其实代码实现起来很是简单 
+在面试的时候很人面试官都会问 computed 计算与 methods 的计算有什么区别？
 
-首先要是去获取当前computed值。
+methods 是一种交互方法，通常是把用户的交互动作写在 methods 中；而 computed 是一种数据变化时 MVVM 中的 module 到 view 的数据转化映射。
+
+简单点讲，methods 是需要人为触发的，而 computed 是在检测到 data 数据变化时自动触发的，还有一点就是，性能消耗的区别，这个好解释。
+
+首先，methods 是方式，方法计算后垃圾回收机制就把变量回收，所以下次在要求计算的时候它会再次去求值。而 computed 是依赖数据的，就像闭包一样，数据占用内存是不会被垃圾回收掉的，所以再次计算的时候，不会再次计算而是返回上次计算的值，当 data 中的数据改变时才会重新计算。简而言之，methods 是一次性计算没有缓存，computed 是有缓存的计算。其实代码实现起来很是简单 
+
+首先要是去获取当前 computed 值。
 
 ```
 
@@ -335,14 +342,14 @@ function computed() { //具有缓存功能
 }
 
 ```
-### 实现一个MVVM 
+### 实现一个 MVVM 
 
-MVVM作为数据绑定的入口，整合Observer、Compile和Watcher三者，通过Observer来监听自己的model数据变化，通过Compile来解析编译模板指令，最终利用Watcher搭起Observer和Compile之间的通信桥梁，达到数据变化 -> 视图更新；视图交互变化(input) -> 数据model变更的双向绑定效果。 
+MVVM 作为数据绑定的入口，整合 Observer、Compile 和 Watcher 三者，通过 Observer 来监听自己的 Model 数据变化，通过 Compile 来解析编译模板指令，最终利用 Watcher 搭起 Observer 和 Compile 之间的通信桥梁，达到数据变化 -> 视图更新，视图交互变化（input） -> 数据 Model 变更的双向绑定效果。 
 
 ```
     let mvvm = new Mvvm({
         el: '#app',
-        data:{ gongzhonghao:'前端架构之路', msg:{vx:214464812,creator: 'zhangzhen' }},
+        data:{ gongzhonghao:'内推猿', msg:{vx:214464812,creator: 'zhangzhen' }},
         //computed 可以缓存 只是把数据挂在mvvm上
         computed:{
           say(){
@@ -371,10 +378,11 @@ function Mvvm(options = {}) {
 }
 
 ``` 
-vue中的MVVM 这里主要还是利用了Object.defineProperty()这个方法来劫持了vm实例对象的属性的读写权，使读写vm实例的属性转成读写了this._data的属性值，
+Vue 中的 MVVM，这里主要还是利用了 Object.defineProperty() 这个方法来劫持了 vm 实例对象的属性的读写权，使读写 vm 实例的属性转成读写了 this._data 的属性值。
 
 ### 总结 
 
-本文主要围绕着 实现Observer , Compile , computed ,proxyData 几个方式 并且根据自己的思路来实现的,有问题可以联系我 VX:<span style='color:red'>zz214464812</span> 或在公总号：<span style='color:red'>"内推猿"</span> 联系我们团队
+本文主要围绕着实现 Observer、Compile、computed 、proxyData 几个方式展开，并分享了自己的研发思路，大家有问题可以在读者圈留言，也可以联系我（微信号：zz214464812）或在公众号（内推猿），联系我们团队。
 
+本文代码：请见 [GitHub](https://github.com/zz-fe/vue_MVVM)。
 
