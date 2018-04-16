@@ -11,13 +11,13 @@
 
 本文中，读者配合作者的 GitHub 去实践，相信会有很大的提升。
 
-<font color=red>
-### 双向数据绑定 Model View ViewModel  
+
+###  双向数据绑定 Model View ViewModel  
 
 1. Angular1.x当中的双向数据绑定是通过 监听的方式来出来的，核心思想为脏值检查,angular 通过$watch()去监听值然后调用  $apply()/ $digest()方法来实现的。
 
 2. Vue 数据劫持 + 发布订阅模式（不兼容低版本）+ 数据代理；
-</font> 
+
 
 #### 今天主要讲 Vue
 
