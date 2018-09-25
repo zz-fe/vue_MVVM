@@ -1,6 +1,5 @@
 # MVVM  
 
-## 更多精彩文章 请关注公众号：'内推猿'，跟随大咖们团队,定期分享技术与招聘信息！~~ 
 
 #### 本文github地址 https://github.com/zz-fe/vue_MVVM
 
@@ -382,7 +381,7 @@ Vue 中的 MVVM，这里主要还是利用了 Object.defineProperty() 这个方�
 
 ### 总结 
 
-本文主要围绕着实现 Observer、Compile、computed 、proxyData 几个方式展开，并分享了自己的研发思路，大家有问题可以在读者圈留言，也可以联系我（微信号：zz214464812）或在公众号（内推猿），联系我们团队。
+本文主要围绕着实现 Observer、Compile、computed 、proxyData 几个方式展开，并分享了自己的研发思路，大家有问题可以在读者圈留言，联系我们团队。
 
 本文代码：请见 [GitHub](https://github.com/zz-fe/vue_MVVM)。
 
